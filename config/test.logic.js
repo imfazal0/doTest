@@ -1,5 +1,11 @@
-import { auth } from "../firebase/config.js";
+import { auth, db } from "../firebase/config.js";
 import { saveTestResults } from "./app.js";
+// Add Firestore imports
+import { 
+  doc, 
+  getDoc, 
+  setDoc 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 export let currentTest = null;
 let currentQuestionIndex = 0;
@@ -400,6 +406,7 @@ async function finishTest() {
   }
   
   const percentage = (score / currentTest.totalQuestions) * 100;
+  const formattedPercentage = percentage.toFixed(2);
   
   // Get grade message
   let gradeMessage = '';
@@ -419,7 +426,7 @@ async function finishTest() {
   }
   
   // Update results modal
-  document.getElementById('finalScore').textContent = `${percentage.toFixed(1)}%`;
+  document.getElementById('finalScore').textContent = `${formattedPercentage}%`;
   document.getElementById('resultsMessage').innerHTML = `
     <i class="${gradeIcon}" style="font-size: 48px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
     <h3 style="margin-bottom: 10px;">${gradeMessage}</h3>
@@ -430,6 +437,7 @@ async function finishTest() {
   try {
     const user = auth.currentUser;
     if (user) {
+      // Save test results first
       await saveTestResults(
         currentTest.data,
         userAnswers,
@@ -438,6 +446,9 @@ async function finishTest() {
         currentTest.testId,
         timeSpentMinutes
       );
+      
+      // Now update leaderboard with the same user object
+      await updateLeaderboard(user, currentTest.data, percentage, timeSpentMinutes);
     }
   } catch (error) {
     console.error('Error saving test results:', error);
@@ -449,7 +460,6 @@ async function finishTest() {
   // Initialize review buttons if not already
   initReviewButton();
 }
-
 // ========== REVIEW FUNCTIONALITY ==========
 
 // Initialize review button in results modal
@@ -508,6 +518,7 @@ export function initReview() {
     const closeReviewBtn = document.getElementById('closeReviewBtn');
     if (closeReviewBtn) {
         closeReviewBtn.addEventListener('click', () => {
+            handleNext()
             document.getElementById('reviewModal').classList.remove('show');
         });
     }
@@ -1017,6 +1028,7 @@ export function initAllInOneReview() {
     const closeReviewAllBtn = document.getElementById('closeReviewAllBtn');
     if (closeReviewAllBtn) {
         closeReviewAllBtn.addEventListener('click', () => {
+            handleNext()
             document.getElementById('reviewAllContainer').classList.remove('show');
         });
     }
@@ -1184,7 +1196,7 @@ function buildAllInOneReviewContent() {
                 </div>
             </div>
         </div>
-        <div style="margin-top: 20px; font-size: 14px; color: #475569;">
+        <div style="margin-top: 20px; font-size: 14px; color: #475569; display:flex; justify-content:center; gap:10px">
             <p><strong>Marks:</strong> ${obtainedMarks}/${totalMarks} (${percentage.toFixed(1)}%)</p>
             <p><strong>Time Spent:</strong> ${formatTimeSpent()}</p>
             <p><strong>Accuracy:</strong> ${correct > 0 ? ((correct / (correct + incorrect)) * 100).toFixed(1) : 0}%</p>
@@ -1563,3 +1575,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
+
+async function updateLeaderboard(user, testData, score, timeSpent) {
+    try {
+        console.log('Updating leaderboard for:', {
+            user: user.uid,
+            subject: currentTest.subject,
+            testId: currentTest.testId,
+            score: score,
+            timeSpent: timeSpent
+        });
+        
+        // Prepare leaderboard entry
+        const leaderboardEntry = {
+            userId: user.uid,
+            userName: user.displayName || 'Anonymous',
+            score: parseFloat(score.toFixed(2)), // Ensure 2 decimal places
+            timeSpent: timeSpent,
+            timestamp: new Date(),
+            subject: currentTest.subject,
+            testId: currentTest.testId
+        };
+        
+        // Check if user already has an entry
+        const existingEntryRef = doc(db, 'leaderboard', currentTest.subject, currentTest.testId, user.uid);
+        const existingEntry = await getDoc(existingEntryRef);
+        
+        if (existingEntry.exists()) {
+            const existingData = existingEntry.data();
+            
+            console.log('Existing entry found:', existingData);
+            
+            // Compare scores - only update if new score is better
+            if (score > existingData.score) {
+                // New score is better, update
+                console.log('New score is better, updating...');
+                await setDoc(existingEntryRef, leaderboardEntry);
+            } else if (Math.abs(score - existingData.score) < 0.01) {
+                // Scores are equal (within 0.01), check time
+                if (timeSpent < existingData.timeSpent) {
+                    // New time is better, update
+                    console.log('Same score but better time, updating...');
+                    await setDoc(existingEntryRef, leaderboardEntry);
+                } else {
+                    console.log('Same score and same/worse time, keeping existing entry');
+                }
+            } else {
+                console.log('Existing score is better, keeping:', existingData.score);
+            }
+        } else {
+            // First entry for this user, create new
+            console.log('No existing entry, creating new...');
+            await setDoc(existingEntryRef, leaderboardEntry);
+        }
+        
+        console.log('Leaderboard updated successfully');
+        
+    } catch (error) {
+        console.error('Error updating leaderboard:', error);
+        // Don't show error to user, just log it
+    }
+}
