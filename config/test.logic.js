@@ -198,21 +198,19 @@ function updateQuestionCounter() {
 function startTimer() {
   clearInterval(timer);
   
+  // Update timer display immediately
+  updateTimerDisplay();
+  
   timer = setInterval(() => {
     timeLeft--;
     
     // Update timer display
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    const timerElement = document.querySelector('.test-info .test-info-value:nth-child(4)');
-    if (timerElement) {
-      timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
+    updateTimerDisplay();
     
     // Time's up
     if (timeLeft <= 0) {
       clearInterval(timer);
-      timeLeft = 0; // Ensure it doesn't go negative
+      timeLeft = 0;
       
       // Force finish the test
       finishTest();
@@ -223,7 +221,32 @@ function startTimer() {
     if (timeLeft === 300) { // 5 minutes = 300 seconds
       showToast("5 minutes remaining!", "warning");
     }
+    
+    // Warning when 1 minute left
+    if (timeLeft === 60) {
+      showToast("1 minute remaining!", "warning");
+    }
   }, 1000);
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  
+  // Try multiple selectors to find the timer element
+  let timerElement = document.getElementById('timerDisplay');
+  
+  if (!timerElement) {
+    // Fallback to class selector
+    const testInfoItems = document.querySelectorAll('.test-info-item');
+    if (testInfoItems.length >= 4) {
+      timerElement = testInfoItems[3].querySelector('.test-info-value');
+    }
+  }
+  
+  if (timerElement) {
+    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
 }
 
 function resetTimer() {
@@ -231,10 +254,7 @@ function resetTimer() {
   clearInterval(timer);
   
   // Update display
-  const timerElement = document.querySelector('.test-info .test-info-value:nth-child(4)');
-  if (timerElement) {
-    timerElement.textContent = "30:00";
-  }
+  updateTimerDisplay();
 }
 
 // Initialize test

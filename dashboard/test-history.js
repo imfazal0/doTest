@@ -229,7 +229,7 @@ function updateStatistics() {
             <div class="stat-icon">
                 <i class="fas fa-chart-bar"></i>
             </div>
-            <div class="stat-value">${worstScore}%</div>
+            <div class="stat-value">${worstScore.toFixed(2)}%</div>
             <div class="stat-label">Worst Score</div>
         </div>
     `;
