@@ -84,7 +84,9 @@ function displayTests(tests) {
         <div class="tests-grid">
     `;
     
-    tests.forEach((test, index) => {
+
+     const reversedTests = [...tests].reverse();
+    reversedTests.forEach((test, index) => {
         // Get question count
         const questionCount = getQuestionCount(test.data);
         

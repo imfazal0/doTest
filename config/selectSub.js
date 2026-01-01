@@ -84,7 +84,9 @@ function showTestSelection(subjectName, tests) {
       </div>
     `;
   } else {
-    tests.forEach((test, index) => {
+     const reversedTests = [...tests].reverse();
+
+    reversedTests.forEach((test, index) => {
       // Extract test name from the ID
       const displayName = formatTestName(test.id);
       
