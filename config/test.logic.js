@@ -518,8 +518,9 @@ export function initReview() {
     const closeReviewBtn = document.getElementById('closeReviewBtn');
     if (closeReviewBtn) {
         closeReviewBtn.addEventListener('click', () => {
-            handleNext()
+            // handleNext()
             document.getElementById('reviewModal').classList.remove('show');
+             document.getElementById('resultsModal').classList.add('show');
         });
     }
     
@@ -1028,8 +1029,9 @@ export function initAllInOneReview() {
     const closeReviewAllBtn = document.getElementById('closeReviewAllBtn');
     if (closeReviewAllBtn) {
         closeReviewAllBtn.addEventListener('click', () => {
-            handleNext()
+            // handleNext()
             document.getElementById('reviewAllContainer').classList.remove('show');
+             document.getElementById('resultsModal').classList.add('show');
         });
     }
     
