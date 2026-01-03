@@ -404,7 +404,7 @@ async function finishTest() {
       score++;
     }
   }
-  
+  console.log(score)
   const percentage = (score / currentTest.totalQuestions) * 100;
   const formattedPercentage = percentage.toFixed(2);
   
