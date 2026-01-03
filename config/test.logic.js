@@ -642,7 +642,7 @@ function calculateReviewStats() {
     document.getElementById('reviewStats').innerHTML = statsHTML;
     
     // Update score breakdown
-    document.getElementById('scorePercentage').textContent = `${percentage.toFixed(1)}%`;
+    document.getElementById('scorePercentage').textContent = `${((percentage)/2).toFixed(1)}%`;
     document.getElementById('scoreFill').style.width = `${percentage}%`;
     document.getElementById('totalScoreLabel').textContent = `${obtainedMarks}/${totalMarks}`;
     document.getElementById('maxScoreLabel').textContent = totalMarks;
