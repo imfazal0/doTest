@@ -294,6 +294,13 @@
             font-weight: 700;
             margin-bottom: 5px;
         }
+        .questionsContainer{
+            display:grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+
+
 
         .metric-percentage {
             font-size: 14px;
@@ -855,7 +862,7 @@
         </div>
         
         <!-- Questions will be dynamically inserted here -->
-        <div id="questionsContainer">
+        <div id="questionsContainer" class="questionsContainer">
             <div class="loading-container">
                 <div class="loading-spinner"></div>
                 <div class="loading-text">Loading report data...</div>
@@ -1148,7 +1155,7 @@
                 document.getElementById('statCorrect').textContent = correct;
                 document.getElementById('statIncorrect').textContent = incorrect;
                 document.getElementById('statSkipped').textContent = skipped;
-                document.getElementById('statScore').textContent = `${percentage.toFixed(1)}%`;
+                document.getElementById('statScore').textContent = `${(percentage/2).toFixed(1)}%`;
                 
                 // Update score summary
                 document.getElementById('scorePercentage').textContent = `${(percentage/2).toFixed(1)}%`;
