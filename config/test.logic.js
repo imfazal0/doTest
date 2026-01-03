@@ -405,7 +405,7 @@ async function finishTest() {
     }
   }
   console.log(score)
-  const percentage = (score / currentTest.totalQuestions) * 100;
+  const percentage = (score / (currentTest.totalQuestions)*2) * 100;
   const formattedPercentage = percentage.toFixed(2);
   
   // Get grade message
