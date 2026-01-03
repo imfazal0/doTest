@@ -1151,7 +1151,7 @@
                 document.getElementById('statScore').textContent = `${percentage.toFixed(1)}%`;
                 
                 // Update score summary
-                document.getElementById('scorePercentage').textContent = `${percentage.toFixed(1)}%`;
+                document.getElementById('scorePercentage').textContent = `${(percentage/2).toFixed(1)}%`;
                 document.getElementById('detailCorrect').textContent = `${correct}/${totalQuestions}`;
                 document.getElementById('detailIncorrect').textContent = `${incorrect}/${totalQuestions}`;
                 document.getElementById('detailSkipped').textContent = skipped;

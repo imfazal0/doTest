@@ -404,8 +404,8 @@ async function finishTest() {
       score++;
     }
   }
-  console.log(score)
-  const percentage = (score / (currentTest.totalQuestions)*2) * 100;
+  
+  const percentage = (score / currentTest.totalQuestions) * 100;
   const formattedPercentage = percentage.toFixed(2);
   
   // Get grade message
@@ -642,7 +642,7 @@ function calculateReviewStats() {
     document.getElementById('reviewStats').innerHTML = statsHTML;
     
     // Update score breakdown
-    document.getElementById('scorePercentage').textContent = `${((percentage)/2).toFixed(1)}%`;
+    document.getElementById('scorePercentage').textContent = `${percentage.toFixed(1)}%`;
     document.getElementById('scoreFill').style.width = `${percentage}%`;
     document.getElementById('totalScoreLabel').textContent = `${obtainedMarks}/${totalMarks}`;
     document.getElementById('maxScoreLabel').textContent = totalMarks;
