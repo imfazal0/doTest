@@ -738,7 +738,7 @@
             <i class="fas fa-print"></i>
             Print Report
         </button>
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="window.close()">
             <i class="fas fa-arrow-left"></i>
             Back to Test
         </button>
@@ -1094,115 +1094,135 @@
         }
 
         // Main function to load and display report data
-        async function loadReportData() {
-            try {
-                // Get data from localStorage (passed from the test page)
-                const reportData = JSON.parse(localStorage.getItem('testReportData'));
-                
-                if (!reportData) {
-                    throw new Error('No report data found');
-                }
-                
-                const { 
-                    testData, 
-                    userAnswers, 
-                    subject, 
-                    testId, 
-                    score, 
-                    totalQuestions, 
-                    timeSpent 
-                } = reportData;
-                
-                // Calculate statistics
-                let correct = 0;
-                let incorrect = 0;
-                let skipped = 0;
-                
-                testData.forEach((question, index) => {
-                    const userAnswer = userAnswers[index];
-                    const correctAnswer = getCorrectAnswer(question);
-                    
-                    if (!userAnswer) {
-                        skipped++;
-                    } else if (userAnswer === correctAnswer) {
-                        correct++;
-                    } else {
-                        incorrect++;
-                    }
-                });
-                
-                const percentage = (score / totalQuestions) * 100;
-                const attempted = correct + incorrect;
-                const accuracy = attempted > 0 ? (correct / attempted) * 100 : 0;
-                const completion = ((totalQuestions - skipped) / totalQuestions) * 100;
-                const grade = calculateGrade(percentage);
-                
-                // Update header
-                document.getElementById('reportSubtitle').textContent = 
-                    `${subject || 'Test'} | ${testId || 'Assessment'}`;
-                
-                const now = new Date();
-                document.getElementById('reportDate').textContent = 
-                    now.toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                    });
-                document.getElementById('footerDate').textContent = 
-                    now.toLocaleDateString();
-                
-                // Update statistics
-                document.getElementById('statCorrect').textContent = correct;
-                document.getElementById('statIncorrect').textContent = incorrect;
-                document.getElementById('statSkipped').textContent = skipped;
-                document.getElementById('statScore').textContent = `${(percentage/2).toFixed(1)}%`;
-                
-                // Update score summary
-                document.getElementById('scorePercentage').textContent = `${(percentage/2).toFixed(1)}%`;
-                document.getElementById('detailCorrect').textContent = `${correct}/${totalQuestions}`;
-                document.getElementById('detailIncorrect').textContent = `${incorrect}/${totalQuestions}`;
-                document.getElementById('detailSkipped').textContent = skipped;
-                document.getElementById('detailTime').textContent = formatTime(timeSpent || 0);
-                
-                // Update performance metrics
-                document.getElementById('accuracyValue').textContent = `${accuracy.toFixed(1)}%`;
-                document.getElementById('completionValue').textContent = `${completion.toFixed(1)}%`;
-                document.getElementById('gradeValue').textContent = grade.grade;
-                document.getElementById('gradeText').textContent = grade.text;
-                
-                // Update progress bars
-                document.getElementById('accuracyBar').style.width = `${accuracy}%`;
-                document.getElementById('completionBar').style.width = `${completion}%`;
-                document.getElementById('gradeBar').style.width = `${percentage}%`;
-                document.getElementById('scoreCircleBg').style.setProperty('--percentage', `${percentage}%`);
-                
-                // Render questions
-                renderQuestions(testData, userAnswers);
-                
-                // Auto-print if specified in URL
-                const params = getUrlParams();
-                if (params.autoPrint === 'true') {
-                    setTimeout(() => {
-                        window.print();
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.error('Error loading report data:', error);
-                document.getElementById('questionsContainer').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Error Loading Report</h3>
-                        <p>Unable to load report data. Please try again.</p>
-                        <button class="back-btn" onclick="goBack()" style="margin-top: 20px;">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Test
-                        </button>
-                    </div>
-                `;
-            }
+        // Replace the entire loadReportData function with this updated version
+async function loadReportData() {
+    try {
+        const params = getUrlParams();
+        const testId = params.testId;
+        const userId = params.userId;
+        
+        if (!testId) {
+            throw new Error('Test ID not found in URL parameters');
         }
 
+        // Fetch test data from your API/backend using testId and userId
+        const reportData = await fetchTestReportData(testId, userId);
+        
+        if (!reportData) {
+            throw new Error('No report data found');
+        }
+        
+        const { 
+            testData, 
+            userAnswers, 
+            subject, 
+            testName, 
+            score, 
+            totalQuestions, 
+            timeSpent 
+        } = reportData;
+        
+        // Calculate statistics
+        let correct = 0;
+        let incorrect = 0;
+        let skipped = 0;
+        
+        testData.forEach((question, index) => {
+            const userAnswer = userAnswers[index];
+            const correctAnswer = getCorrectAnswer(question);
+            
+            if (!userAnswer || userAnswer === '') {
+                skipped++;
+            } else if (userAnswer === correctAnswer) {
+                correct++;
+            } else {
+                incorrect++;
+            }
+        });
+        
+        const percentage = (score / totalQuestions) * 100;
+        const attempted = correct + incorrect;
+        const accuracy = attempted > 0 ? (correct / attempted) * 100 : 0;
+        const completion = ((totalQuestions - skipped) / totalQuestions) * 100;
+        const grade = calculateGrade(percentage);
+        
+        // Update header
+        document.getElementById('reportSubtitle').textContent = 
+            `${subject || 'Test'} | ${testName || testId}`;
+        
+        const now = new Date();
+        document.getElementById('reportDate').textContent = 
+            now.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        document.getElementById('footerDate').textContent = 
+            now.toLocaleDateString();
+        
+        // Update statistics
+        document.getElementById('statCorrect').textContent = correct;
+        document.getElementById('statIncorrect').textContent = incorrect;
+        document.getElementById('statSkipped').textContent = skipped;
+        document.getElementById('statScore').textContent = `${percentage.toFixed(1)}%`;
+        
+        // Update score summary
+        document.getElementById('scorePercentage').textContent = `${percentage.toFixed(1)}%`;
+        document.getElementById('detailCorrect').textContent = `${correct}/${totalQuestions}`;
+        document.getElementById('detailIncorrect').textContent = `${incorrect}/${totalQuestions}`;
+        document.getElementById('detailSkipped').textContent = skipped;
+        document.getElementById('detailTime').textContent = formatTime(timeSpent || 0);
+        
+        // Update performance metrics
+        document.getElementById('accuracyValue').textContent = `${accuracy.toFixed(1)}%`;
+        document.getElementById('completionValue').textContent = `${completion.toFixed(1)}%`;
+        document.getElementById('gradeValue').textContent = grade.grade;
+        document.getElementById('gradeText').textContent = grade.text;
+        
+        // Update progress bars
+        document.getElementById('accuracyBar').style.width = `${accuracy}%`;
+        document.getElementById('completionBar').style.width = `${completion}%`;
+        document.getElementById('gradeBar').style.width = `${percentage}%`;
+        document.getElementById('scoreCircleBg').style.setProperty('--percentage', `${percentage}%`);
+        
+        // Render questions
+        renderQuestions(testData, userAnswers);
+        
+        // Auto-print if specified in URL
+        if (params.autoPrint === 'true') {
+            setTimeout(() => {
+                window.print();
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('Error loading report data:', error);
+        document.getElementById('questionsContainer').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error Loading Report</h3>
+                <p>Unable to load report data. Please try again.</p>
+                <p><small>Error: ${error.message}</small></p>
+                <button class="back-btn" onclick="goBack()" style="margin-top: 20px;">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Test
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Add this function to fetch data from your backend
+async function fetchTestReportData(testId, userId) {
+    // Replace this with your actual API endpoint
+    const response = await fetch(`/api/test-report?testId=${testId}&userId=${userId}`);
+    
+    if (!response.ok) {
+        throw new Error('Failed to fetch test report data');
+    }
+    
+    return await response.json();
+}
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', loadReportData);
 
