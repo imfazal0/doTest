@@ -1095,21 +1095,14 @@
 
         // Main function to load and display report data
         // Replace the entire loadReportData function with this updated version
+        // Main function to load and display report data
 async function loadReportData() {
     try {
-        const params = getUrlParams();
-        const testId = params.testId;
-        const userId = params.userId;
-        
-        if (!testId) {
-            throw new Error('Test ID not found in URL parameters');
-        }
-
-        // Fetch test data from your API/backend using testId and userId
-        const reportData = await fetchTestReportData(testId, userId);
+        // Get data from localStorage (passed from the dashboard page)
+        const reportData = JSON.parse(localStorage.getItem('testReportData'));
         
         if (!reportData) {
-            throw new Error('No report data found');
+            throw new Error('No report data found in localStorage');
         }
         
         const { 
@@ -1122,25 +1115,36 @@ async function loadReportData() {
             timeSpent 
         } = reportData;
         
+        // Validate data
+        if (!testData || !Array.isArray(testData)) {
+            throw new Error('Invalid test data format');
+        }
+        
         // Calculate statistics
-        let correct = 0;
+        let correct = reportData.correctAnswers || 0;
         let incorrect = 0;
         let skipped = 0;
         
-        testData.forEach((question, index) => {
-            const userAnswer = userAnswers[index];
-            const correctAnswer = getCorrectAnswer(question);
-            
-            if (!userAnswer || userAnswer === '') {
-                skipped++;
-            } else if (userAnswer === correctAnswer) {
-                correct++;
-            } else {
-                incorrect++;
-            }
-        });
+        // If correctAnswers is not provided, calculate it
+        if (!reportData.correctAnswers) {
+            correct = 0;
+            testData.forEach((question, index) => {
+                const userAnswer = userAnswers && userAnswers[index];
+                const correctAnswer = getCorrectAnswer(question);
+                
+                if (!userAnswer || userAnswer === '') {
+                    skipped++;
+                } else if (userAnswer === correctAnswer) {
+                    correct++;
+                } else {
+                    incorrect++;
+                }
+            });
+        } else {
+            incorrect = totalQuestions - correct - skipped;
+        }
         
-        const percentage = (score / totalQuestions) * 100;
+        const percentage = ((score / totalQuestions) * 100)/2;
         const attempted = correct + incorrect;
         const accuracy = attempted > 0 ? (correct / attempted) * 100 : 0;
         const completion = ((totalQuestions - skipped) / totalQuestions) * 100;
@@ -1148,7 +1152,7 @@ async function loadReportData() {
         
         // Update header
         document.getElementById('reportSubtitle').textContent = 
-            `${subject || 'Test'} | ${testName || testId}`;
+            `${subject || 'Test'} | ${testName || 'Test Review'}`;
         
         const now = new Date();
         document.getElementById('reportDate').textContent = 
@@ -1164,10 +1168,10 @@ async function loadReportData() {
         document.getElementById('statCorrect').textContent = correct;
         document.getElementById('statIncorrect').textContent = incorrect;
         document.getElementById('statSkipped').textContent = skipped;
-        document.getElementById('statScore').textContent = `${percentage.toFixed(1)}%`;
+        document.getElementById('statScore').textContent = `${(percentage).toFixed(1)}%`;
         
         // Update score summary
-        document.getElementById('scorePercentage').textContent = `${percentage.toFixed(1)}%`;
+        document.getElementById('scorePercentage').textContent = `${(percentage).toFixed(1)}%`;
         document.getElementById('detailCorrect').textContent = `${correct}/${totalQuestions}`;
         document.getElementById('detailIncorrect').textContent = `${incorrect}/${totalQuestions}`;
         document.getElementById('detailSkipped').textContent = skipped;
@@ -1189,6 +1193,7 @@ async function loadReportData() {
         renderQuestions(testData, userAnswers);
         
         // Auto-print if specified in URL
+        const params = getUrlParams();
         if (params.autoPrint === 'true') {
             setTimeout(() => {
                 window.print();
@@ -1201,17 +1206,16 @@ async function loadReportData() {
             <div class="empty-state">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error Loading Report</h3>
-                <p>Unable to load report data. Please try again.</p>
-                <p><small>Error: ${error.message}</small></p>
+                <p>${error.message || 'Unable to load report data. Please try again.'}</p>
+                <p><small>Make sure you're accessing this page from your dashboard.</small></p>
                 <button class="back-btn" onclick="goBack()" style="margin-top: 20px;">
                     <i class="fas fa-arrow-left"></i>
-                    Back to Test
+                    Back to Dashboard
                 </button>
             </div>
         `;
     }
 }
-
 // Add this function to fetch data from your backend
 async function fetchTestReportData(testId, userId) {
     // Replace this with your actual API endpoint

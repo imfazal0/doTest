@@ -1,5 +1,14 @@
 import { auth, db, signOut } from '../firebase/config.js';
-import { collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    orderBy, 
+    limit,
+    doc,
+    getDoc 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 const userName = document.getElementById('userName');
 const userEmail = document.getElementById('userEmail');
@@ -12,11 +21,6 @@ const totalTests = document.getElementById('totalTests');
 const avgScore = document.getElementById('avgScore');
 const totalTime = document.getElementById('totalTime');
 const streak = document.getElementById('streak');
-
-// Buttons
-const viewAllTestsBtn = document.getElementById('viewAllTestsBtn');
-const viewAllHistory = document.getElementById('viewAllHistory');
-const exportDataBtn = document.getElementById('exportDataBtn');
 
 // Check authentication
 auth.onAuthStateChanged(async (user) => {
@@ -77,13 +81,9 @@ async function loadTestHistory(userId) {
         }
         
         let testHistoryHTML = '';
-        let testCount = 0;
-        let totalScore = 0;
         
         querySnapshot.forEach((doc) => {
             const testData = doc.data();
-            testCount++;
-            totalScore += testData.score || 0;
             
             // Format date
             const date = testData.timestamp ? 
@@ -102,7 +102,7 @@ async function loadTestHistory(userId) {
             const scoreColor = getScoreColor(testData.score);
             
             testHistoryHTML += `
-                <div class="test-card">
+                <div class="test-card" data-test-result-id="${doc.id}">
                     <div class="test-header">
                         <div class="test-subject">
                             <i class="${subjectIcon}"></i>
@@ -266,6 +266,8 @@ logoutBtn.addEventListener('click', async () => {
     try {
         await signOut(auth);
         localStorage.removeItem('user');
+        localStorage.removeItem('testReportData');
+        sessionStorage.removeItem('currentTestReviewId');
         window.location.href = '../login/login.html';
     } catch (error) {
         console.error('Logout error:', error);
@@ -273,29 +275,45 @@ logoutBtn.addEventListener('click', async () => {
     }
 });
 
-// viewAllTestsBtn.addEventListener('click', (e) => {
-//     e.preventDefault();
-//     // Show all tests (in a real app, this would load more tests)
-//     alert('View all tests feature coming soon!');
-// });
-
-// viewAllHistory.addEventListener('click', (e) => {
-//     e.preventDefault();
-//     // Show full history (in a real app, this would open a detailed history page)
-//     alert('Full history view coming soon!');
-// });
-
-// exportDataBtn.addEventListener('click', () => {
-//     exportAllData()
-// });
-
 // Global functions for buttons
-window.viewTestReview = function(testId) {
-    // In a real app, this would open the test review
-    alert(`Viewing test review for ID: ${testId}`);
-    
-    // For now, redirect to print report page
-    window.open(`../printReport/printReport.html?testId=${testId}`, '_blank');
+window.viewTestReview = async function(testResultId) {
+    try {
+        console.log('Opening test review for ID:', testResultId);
+        
+        // Get test result document from Firestore
+        const testResultDoc = await getDoc(doc(db, 'testResults', testResultId));
+        
+        if (!testResultDoc.exists()) {
+            alert('Test result not found');
+            return;
+        }
+        
+        const testResultData = testResultDoc.data();
+        
+        // Prepare the report data object
+        const reportData = {
+            testData: testResultData.questions || [],
+            userAnswers: testResultData.userAnswers || [],
+            subject: testResultData.subject || 'General',
+            testId: testResultData.testId || 'unknown',
+            score: testResultData.score || 0,
+            totalQuestions: testResultData.totalQuestions || 0,
+            correctAnswers: testResultData.correctAnswers || 0,
+            timeSpent: testResultData.timeSpent || 0,
+            timestamp: testResultData.timestamp || new Date(),
+            testName: `${testResultData.subject || 'Test'} Review`
+        };
+        
+        // Store in localStorage (this is what the printReport.html reads)
+        localStorage.setItem('testReportData', JSON.stringify(reportData));
+        
+        // Open the print report page in a new tab
+        window.open('../printReport/printReport.html', '_blank');
+        
+    } catch (error) {
+        console.error('Error in viewTestReview:', error);
+        alert('Failed to load test review. Please try again.');
+    }
 };
 
 window.retryTest = function(subject, testId) {
