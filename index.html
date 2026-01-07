@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doTest | Modern Exam Platform</title>
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+</head>
+<body>
+    <!-- Login Check Script -->
+    <script type="module">
+        import { auth, onAuthStateChanged } from "./firebase/config.js";
+        
+        // Check if user is logged in
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // Not logged in, redirect to login page
+                window.location.href = "./login/login.html";
+            } else {
+                // Show the main app content
+                document.body.style.display = 'block';
+            }
+        });
+        
+        // Hide body initially (will be shown after auth check)
+        document.body.style.display = 'none';
+    </script>
+    
+    <div class="container">
+        <!-- Left Panel: Subject Selection -->
+        <div class="select-test-box">
+            <!-- User Profile Header -->
+            <div class="user-profile" id="userProfile" style="display: none; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img id="userAvatar" src="" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <div style="flex: 1;">
+                        <div id="userName" style="font-weight: 600; color: var(--text-primary);"></div>
+                        <div id="userEmail" style="font-size: 12px; color: var(--text-secondary);"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="./dashboard/dashboard.html" style="flex: 1; padding: 10px; background: var(--primary); color: white; border-radius: 10px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <button id="logoutBtn" style="flex: 1; padding: 10px; background: var(--background); border: 2px solid var(--border); border-radius: 10px; color: var(--text-primary); font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div class="header">
+                <i class="fas fa-graduation-cap"></i>
+                <h2>Select Subject</h2>
+            </div>
+            
+            <button class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Subjects
+            </button>
+            
+            <div class="s-subject" id="s-subject">
+                <div class="view-all-test-view" id="view-all-test-view">
+                    <p data-value="Python">
+                        <i class="fab fa-python"></i>
+                        Python Programming
+                    </p>
+                    <p data-value="Unix_&_Shell_programming">
+                        <i class="fas fa-terminal"></i>
+                        Unix & Shell Programming
+                    </p>
+                    <p data-value="Accounting_&_Financial_Management">
+                        <i class="fas fa-calculator"></i>
+                        Accounting & Financial Management
+                    </p>
+                    <p data-value="Cyber-Security">
+                        <i class="fas fa-shield-alt"></i>
+                        Cyber Security
+                    </p>
+                    <p data-value="Computer_Networks">
+                        <i class="fas fa-network-wired"></i>
+                        Computer Networks
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Test Area -->
+        <div class="test-box" id="testBox">
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading test...</p>
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-book-open"></i>
+                <h3>Select a subject to begin</h3>
+                <p>Choose a subject from the left panel to start your test</p>
+            </div>
+
+            <div class="test-content" id="testContent" style="display: none;">
+                <!-- Test Info Bar -->
+                <div class="test-info">
+                    <div class="test-info-item">
+                        <span class="test-info-label">Subject</span>
+                        <span class="test-info-value" id="subjectName">-</span>
+                    </div>
+                    <div class="test-info-item">
+                        <span class="test-info-label">Test</span>
+                        <span class="test-info-value" id="testName">-</span>
+                    </div>
+                    <div class="test-info-item">
+                        <span class="test-info-label">Questions</span>
+                        <span class="test-info-value" id="totalQuestions">0</span>
+                    </div>
+                    <div class="test-info-item">
+                        <span class="test-info-label">Time</span>
+                        <span class="test-info-value"  id="timerDisplay">30:00</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span class="progress-label">Progress</span>
+                        <span class="progress-percent" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Question Area -->
+                <div class="test-view" id="testView">
+                    <div class="question">
+                        <div class="question-no" id="questionNo">Q1</div>
+                        <pre style="font-family:roboto; "><code style="font-family:roboto; "><div id="question">Select a subject to load questions...</div></code></pre>
+                    </div>
+
+                    <div class="option" id="option">
+                        <div class="opt-div-in" id="opt-div-in">
+                            <!-- Options will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="button" id="button">
+                        <div class="question-counter">
+                            Question <span id="currentQuestion">1</span> of <span id="totalQuestionsCount">10</span>
+                        </div>
+                        <button type="button" id="next_button">
+                            Next Question
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div class="results-modal" id="resultsModal">
+        <div class="results-content">
+            <i class="fas fa-trophy" style="font-size: 64px; color: #f59e0b; margin-bottom: 20px;"></i>
+            <h2>Test Completed!</h2>
+            <div class="results-score" id="finalScore">0%</div>
+            <p id="resultsMessage">You have completed the test. Well done!</p>
+            <div class="results-actions">
+                <button class="retry-btn" id="retryBtn">
+                    <i class="fas fa-redo"></i>
+                    Try Again
+                </button>
+                <button class="close-btn" id="closeResultsBtn">
+                    <i class="fas fa-times"></i>
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="results-modal" id="reviewModal">
+        <div class="results-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="review-header">
+                <h2><i class="fas fa-chart-bar"></i> Test Review</h2>
+                <button class="close-btn" id="closeReviewBtn">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+            
+            <div class="review-stats" id="reviewStats">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div class="score-breakdown" id="scoreBreakdown">
+                <div class="breakdown-header">
+                    <span>Score Breakdown</span>
+                    <span id="scorePercentage">0%</span>
+                </div>
+                <div class="score-bar">
+                    <div class="score-fill" id="scoreFill"></div>
+                </div>
+                <div class="score-labels">
+                    <span>0</span>
+                    <span id="totalScoreLabel">0/0</span>
+                    <span id="maxScoreLabel">0</span>
+                </div>
+            </div>
+            
+            <div class="review-questions" id="reviewQuestions">
+                <!-- Questions will be populated by JavaScript -->
+            </div>
+            
+            <div class="review-controls">
+                <div class="review-nav">
+                    <button class="review-nav-btn secondary" id="prevReviewBtn">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="review-nav-btn" id="nextReviewBtn">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="review-question-jump">
+                    <span>Jump to:</span>
+                    <select id="questionJumpSelect"></select>
+                </div>
+                
+                <button class="review-nav-btn secondary" id="printReviewBtn">
+                    <i class="fas fa-print"></i> Print Review
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Navigation Sidebar -->
+    <div class="question-navigation" id="questionNavigation">
+        <div class="nav-header">Questions</div>
+        <div class="question-dots" id="questionDots">
+            <!-- Navigation dots will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- All-in-One Review Page -->
+    <div class="review-all-container" id="reviewAllContainer">
+        <div class="review-all-content">
+            <!-- Print Header (only visible when printing) -->
+            <div class="print-header">
+                <h1><i class="fas fa-file-alt"></i> Test Review Report</h1>
+                <div class="print-date">
+                    <p>Subject: <span id="printSubject">N/A</span> | Test: <span id="printTest">N/A</span></p>
+                    <p>Date: <span id="printDate">N/A</span></p>
+                    <p>Generated by: doTest Platform</p>
+                </div>
+            </div>
+            
+            <!-- Main Header -->
+            <div class="review-all-header">
+                <button class="close-review-all" id="closeReviewAllBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h1><i class="fas fa-chart-bar"></i> Test Review</h1>
+                <p class="review-all-subtitle" id="reviewSubject">Complete analysis of your test performance</p>
+                
+                <div class="review-all-stats" id="reviewAllStats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="review-all-body">
+                <!-- Summary Card -->
+                <div class="review-summary-card" id="reviewSummaryCard">
+                    <!-- Summary will be populated by JavaScript -->
+                </div>
+                
+                <!-- All Questions -->
+                <div class="review-all-questions" id="reviewAllQuestions">
+                    <!-- All questions will be populated here -->
+                </div>
+                
+                <!-- Actions -->
+                <div class="review-all-actions">
+                    <button class="review-all-btn print" id="printReviewAllBtn">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                    <button class="review-all-btn download" id="downloadReviewBtn">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                    <button class="review-all-btn close" id="closeReviewAllBtn2">
+                        <i class="fas fa-times"></i> Close Review
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll to top button -->
+        <button class="scroll-to-top" id="scrollToTopBtn">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        
+        <!-- Quick Stats Bar -->
+        <div class="quick-stats-bar" id="quickStatsBar">
+            <!-- Quick stats will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script src="./config/app.js" type="module"></script>
+    <script src="./config/selectSub.js" type="module"></script>
+    <script src="./config/test.logic.js" type="module"></script>
+    
+    <!-- User Profile and Logout Script -->
+    <script type="module">
+        import { auth, signOut, onAuthStateChanged } from "./firebase/config.js";
+        
+        // Show user profile when logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const userProfile = document.getElementById('userProfile');
+                const userName = document.getElementById('userName');
+                const userEmail = document.getElementById('userEmail');
+                const userAvatar = document.getElementById('userAvatar');
+                
+                userProfile.style.display = 'block';
+                userName.textContent = user.displayName || 'User';
+                userEmail.textContent = user.email || 'No email';
+                
+                if (user.photoURL) {
+                    userAvatar.src = user.photoURL;
+                } else {
+                    const firstLetter = user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U';
+                    userAvatar.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%234f46e5"/><text x="50" y="60" text-anchor="middle" fill="white" font-size="50" font-family="Arial">${firstLetter}</text></svg>`;
+                }
+                
+                // Store user info in localStorage for quick access
+                localStorage.setItem('user', JSON.stringify({
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL
+                }));
+                
+                // Logout button
+                document.getElementById('logoutBtn').addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        localStorage.removeItem('user');
+                        window.location.href = './login/login.html';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        alert('Failed to logout. Please try again.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
