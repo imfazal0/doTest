@@ -1039,10 +1039,7 @@ export function initAllInOneReview() {
     if (closeReviewAllBtn2) {
         closeReviewAllBtn2.addEventListener('click', () => {
             document.getElementById('reviewAllContainer').classList.remove('show');
-<<<<<<< HEAD
              document.getElementById('resultsModal').classList.add('show');
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
         });
     }
     

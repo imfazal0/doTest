@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <title>Test Report </title>
-=======
-    <title>Test Report - Print</title>
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -98,11 +94,7 @@
 
         .header-stats {
             display: grid;
-<<<<<<< HEAD
             grid-template-columns: repeat(2, 1fr);
-=======
-            grid-template-columns: repeat(4, 1fr);
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
             gap: 20px;
             margin-top: 20px;
         }
@@ -302,17 +294,10 @@
             font-weight: 700;
             margin-bottom: 5px;
         }
-<<<<<<< HEAD
        .questionsContainer {
             display: grid;
             grid-template-columns: 1fr;
             gap: 16px;
-=======
-        .questionsContainer{
-            display:grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 10px;
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
         }
 
 
@@ -345,10 +330,7 @@
         }
 
         .question-item {
-<<<<<<< HEAD
           
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
             background: white;
             border-radius: 16px;
             padding: 25px;
@@ -748,7 +730,6 @@
             max-width: 400px;
             margin: 0 auto;
         }
-<<<<<<< HEAD
         .question-text:hover {
             color: #1e40af;
         }
@@ -805,8 +786,6 @@
 }
 
 
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
     </style>
 </head>
 <body>
@@ -959,7 +938,6 @@
     </div>
 
     <script>
-<<<<<<< HEAD
         document.addEventListener('click', function (e) {
                 const target = e.target.closest('.question-text[data-search]');
                 if (!target) return;
@@ -973,8 +951,6 @@
 
 
 
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
         // Function to get URL parameters
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
@@ -1007,7 +983,6 @@
             return { grade: 'F', text: 'Needs Improvement' };
         }
 
-<<<<<<< HEAD
         // explanation 
         // function openExplanationSearch(questionText, correctAnswer) {
         // const query = `${questionText} correct answer ${correctAnswer}`;
@@ -1035,8 +1010,6 @@
 
 
 
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
         // Function to render questions
         function renderQuestions(questions, userAnswers) {
             const container = document.getElementById('questionsContainer');
@@ -1104,7 +1077,6 @@
                         "D": question.option4
                     };
                 }
-<<<<<<< HEAD
 
                     const searchText = [
                         question.question,
@@ -1114,8 +1086,6 @@
 
 
 
-=======
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
                 
                 // Build options HTML
                 let optionsHTML = '';
@@ -1165,7 +1135,6 @@
                     <div class="question-item ${statusClass}" id="question${index + 1}">
                         <div class="question-header">
                             <div class="question-number">Question ${index + 1}</div>
-<<<<<<< HEAD
                            <div class="question-status status-${status}">${statusText}</div>
                         </div>
                         
@@ -1178,13 +1147,6 @@
 
                        
 
-=======
-                            <div class="question-status status-${status}">${statusText}</div>
-                        </div>
-                        
-                        <div class="question-text">${question.question}</div>
-                        
->>>>>>> d10dc05ba62691879047448056137a6d232d3ed7
                         <div class="options-container">
                             ${optionsHTML}
                         </div>
