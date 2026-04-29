@@ -18,8 +18,8 @@ const subjectIcons = {
   'Accounting_&_Financial_Management': 'fas fa-calculator',
   'Cyber-Security': 'fas fa-shield-alt',
   'Computer_Networks': 'fas fa-network-wired',
-  'JavaScript': "fa-brands fa-js"
-  
+  'JavaScript': "fa-brands fa-js",
+  'Software_Engineering': 'fa-solid fa-compass-drafting'
 };
 
 stb.addEventListener("click", async (e) => {
@@ -236,6 +236,10 @@ function resetUI() {
     <p data-value="JavaScript">
       <i class="fa-brands fa-js"></i>
       JavaScript
+    </p>
+    <p data-value="Software_Engineering">
+      <i class="fa-brands fa-js"></i>
+       Software Engineering
     </p>
   `;
   

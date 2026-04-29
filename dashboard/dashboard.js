@@ -229,7 +229,8 @@ function getSubjectIcon(subject) {
         'Unix_&_Shell_programming': 'fas fa-terminal',
         'Accounting_&_Financial_Management': 'fas fa-calculator',
         'Cyber-Security': 'fas fa-shield-alt',
-        'Computer_Networks': 'fas fa-network-wired'
+        'Computer_Networks': 'fas fa-network-wired',
+        'Software_Engineering': 'fa-solid fa-compass-drafting'
     };
     
     return icons[subject] || 'fas fa-book';
