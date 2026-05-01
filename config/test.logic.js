@@ -384,57 +384,65 @@ function handleKeyboardNavigation(e) {
 }
 
 async function finishTest() {
-  clearInterval(timer);
+  // Prevent multiple submissions
+  const nextButton = document.getElementById('next_button');
+  const originalButtonText = nextButton.innerHTML;
   
-  // Calculate time spent
-  const endTime = Date.now();
-  const timeSpentSeconds = Math.floor((endTime - startTime) / 1000);
-  const timeSpentMinutes = Math.floor(timeSpentSeconds / 60);
+  // Disable button and show loading state
+  nextButton.disabled = true;
+  nextButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   
-  // Calculate score properly at the end by checking all questions
-  score = 0;
-  for (let i = 0; i < currentTest.totalQuestions; i++) {
-    const question = currentTest.data[i];
-    const correctAnswer = getCorrectAnswer(question);
-    const userAnswer = userAnswers[i];
-    
-    // Only count if user answered and answer is correct
-    if (userAnswer && correctAnswer && 
-        userAnswer.toString().toUpperCase() === correctAnswer.toString().toUpperCase()) {
-      score++;
-    }
-  }
-  
-  const percentage = (score / currentTest.totalQuestions) * 100;
-  const formattedPercentage = percentage.toFixed(2);
-  
-  // Get grade message
-  let gradeMessage = '';
-  let gradeIcon = '';
-  if (percentage >= 90) {
-    gradeMessage = 'Excellent! 🎉';
-    gradeIcon = 'fas fa-trophy';
-  } else if (percentage >= 75) {
-    gradeMessage = 'Great job! 👍';
-    gradeIcon = 'fas fa-star';
-  } else if (percentage >= 60) {
-    gradeMessage = 'Good effort!';
-    gradeIcon = 'fas fa-thumbs-up';
-  } else {
-    gradeMessage = 'Keep practicing! 📚';
-    gradeIcon = 'fas fa-book';
-  }
-  
-  // Update results modal
-  document.getElementById('finalScore').textContent = `${formattedPercentage}%`;
-  document.getElementById('resultsMessage').innerHTML = `
-    <i class="${gradeIcon}" style="font-size: 48px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
-    <h3 style="margin-bottom: 10px;">${gradeMessage}</h3>
-    You answered <strong>${score} out of ${currentTest.totalQuestions}</strong> questions correctly.
-  `;
-  
-  // Save test results
   try {
+    clearInterval(timer);
+    
+    // Calculate time spent
+    const endTime = Date.now();
+    const timeSpentSeconds = Math.floor((endTime - startTime) / 1000);
+    const timeSpentMinutes = Math.floor(timeSpentSeconds / 60);
+    
+    // Calculate score properly at the end by checking all questions
+    score = 0;
+    for (let i = 0; i < currentTest.totalQuestions; i++) {
+      const question = currentTest.data[i];
+      const correctAnswer = getCorrectAnswer(question);
+      const userAnswer = userAnswers[i];
+      
+      // Only count if user answered and answer is correct
+      if (userAnswer && correctAnswer && 
+          userAnswer.toString().toUpperCase() === correctAnswer.toString().toUpperCase()) {
+        score++;
+      }
+    }
+    
+    const percentage = (score / currentTest.totalQuestions) * 100;
+    const formattedPercentage = percentage.toFixed(2);
+    
+    // Get grade message
+    let gradeMessage = '';
+    let gradeIcon = '';
+    if (percentage >= 90) {
+      gradeMessage = 'Excellent! 🎉';
+      gradeIcon = 'fas fa-trophy';
+    } else if (percentage >= 75) {
+      gradeMessage = 'Great job! 👍';
+      gradeIcon = 'fas fa-star';
+    } else if (percentage >= 60) {
+      gradeMessage = 'Good effort!';
+      gradeIcon = 'fas fa-thumbs-up';
+    } else {
+      gradeMessage = 'Keep practicing! 📚';
+      gradeIcon = 'fas fa-book';
+    }
+    
+    // Update results modal
+    document.getElementById('finalScore').textContent = `${formattedPercentage}%`;
+    document.getElementById('resultsMessage').innerHTML = `
+      <i class="${gradeIcon}" style="font-size: 48px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
+      <h3 style="margin-bottom: 10px;">${gradeMessage}</h3>
+      You answered <strong>${score} out of ${currentTest.totalQuestions}</strong> questions correctly.
+    `;
+    
+    // Save test results
     const user = auth.currentUser;
     if (user) {
       // Save test results first
@@ -450,15 +458,26 @@ async function finishTest() {
       // Now update leaderboard with the same user object
       await updateLeaderboard(user, currentTest.data, percentage, timeSpentMinutes);
     }
+    
+    // Show results modal
+    document.getElementById('resultsModal').classList.add('show');
+    
+    // Initialize review buttons if not already
+    initReviewButton();
+    
+    // Keep button disabled after successful submission
+    nextButton.innerHTML = '<i class="fas fa-check"></i> Test Submitted';
+    
   } catch (error) {
     console.error('Error saving test results:', error);
+    
+    // Re-enable button on error so user can try again
+    nextButton.disabled = false;
+    nextButton.innerHTML = originalButtonText;
+    
+    // Show error message
+    showToast('Error submitting test. Please try again.', 'error');
   }
-  
-  // Show results modal
-  document.getElementById('resultsModal').classList.add('show');
-  
-  // Initialize review buttons if not already
-  initReviewButton();
 }
 // ========== REVIEW FUNCTIONALITY ==========
 
