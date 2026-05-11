@@ -12,13 +12,33 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let timer = null;
-let timeLeft = 1800; // 30 minutes in seconds
+let timeLeft = 0; // Will be set dynamically in startTest
 let startTime = null;
 
 // Review variables
 let reviewQuestions = [];
 let currentReviewIndex = 0;
 let userReviewAnswers = [];
+
+// Utility function to calculate test duration based on question count
+function calculateTestDuration(questionCount) {
+  // Base time for 50 questions: 30 minutes (1800 seconds)
+  const baseQuestions = 50;
+  const baseTimeSeconds = 1800; // 30 minutes
+  
+  if (questionCount <= baseQuestions) {
+    return baseTimeSeconds;
+  }
+  
+  // For questions beyond 50, add time proportionally
+  // Add 36 seconds per additional question (0.6 minutes per question)
+  const additionalTime = (questionCount - baseQuestions) * 36;
+  
+  // Cap maximum time at 2 hours (7200 seconds)
+  const maxTimeSeconds = 7200;
+  
+  return Math.min(baseTimeSeconds + additionalTime, maxTimeSeconds);
+}
 
 export function startTest(examData, subject, testId) {
   // Ensure examData is an array
@@ -46,6 +66,9 @@ export function startTest(examData, subject, testId) {
   score = 0;
   startTime = Date.now();
   
+  // Calculate time based on number of questions
+  timeLeft = calculateTestDuration(examData.length);
+  
   // Reset and start timer
   resetTimer();
   startTimer();
@@ -61,6 +84,10 @@ export function startTest(examData, subject, testId) {
   // Initialize review functionality
   initReview();
   initAllInOneReview();
+  
+  // Show time info to user
+  const minutes = Math.floor(timeLeft / 60);
+  showToast(`Test duration: ${minutes} minutes for ${examData.length} questions`, "info");
 }
 
 export function resetTest() {
@@ -252,14 +279,21 @@ function updateTimerDisplay() {
   
   if (timerElement) {
     timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Add warning color when less than 5 minutes remaining
+    if (timeLeft <= 300) {
+      timerElement.style.color = '#ef4444';
+      timerElement.style.fontWeight = 'bold';
+    } else {
+      timerElement.style.color = '';
+      timerElement.style.fontWeight = '';
+    }
   }
 }
 
 function resetTimer() {
-  timeLeft = 1800; // Reset to 30 minutes
   clearInterval(timer);
-  
-  // Update display
+  // Don't reset timeLeft here - it's already set in startTest
   updateTimerDisplay();
 }
 
@@ -479,6 +513,7 @@ async function finishTest() {
     showToast('Error submitting test. Please try again.', 'error');
   }
 }
+
 // ========== REVIEW FUNCTIONALITY ==========
 
 // Initialize review button in results modal
@@ -937,7 +972,7 @@ function redirectToPrintReport() {
         testId: currentTest.testId,
         score: (score / currentTest.totalQuestions) * 100,
         totalQuestions: currentTest.totalQuestions,
-        timeSpent: Math.floor((1800 - timeLeft) / 60) // Convert seconds to minutes
+        timeSpent: Math.floor(((calculateTestDuration(currentTest.totalQuestions) - timeLeft) / 60))
     };
     
     // Store data in localStorage
@@ -1429,7 +1464,7 @@ function buildQuestionReviewHTML(question, index) {
 
 // Format time spent
 function formatTimeSpent() {
-    const spentSeconds = 1800 - timeLeft;
+    const spentSeconds = calculateTestDuration(currentTest.totalQuestions) - timeLeft;
     const minutes = Math.floor(spentSeconds / 60);
     const seconds = spentSeconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -1597,8 +1632,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-
 
 async function updateLeaderboard(user, testData, score, timeSpent) {
     try {
